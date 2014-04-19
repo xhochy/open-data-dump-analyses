@@ -21,12 +21,21 @@ identifier = re.compile('http://rdf.freebase.com/ns/m\.(.*)')
 idmatch = re.compile('<http://rdf.freebase.com/ns/m.([^>]*)>\s+')
 objecttype = re.compile('<http://rdf.freebase.com/ns/m.([^>]*)>\s+<http://rdf.freebase.com/ns/type.object.type>\s+<http://rdf.freebase.com/ns/([^>]*)>')
 containedby = re.compile('<http://rdf.freebase.com/ns/m.([^>]*)>\s+<http://rdf.freebase.com/ns/location.location.containedby>\s+<http://rdf.freebase.com/ns/m\.([^>]*)>')
-objectname = re.compile('<http://rdf.freebase.com/ns/m.([^>]*)>\s+<http://rdf.freebase.com/ns/type.object.name>\s+"([^"]*)@([^\s]*)"')
+objectname = re.compile('<http://rdf.freebase.com/ns/m.([^>]*)>\s+<http://rdf.freebase.com/ns/type.object.name>\s+"([^"]*)"@([^\s]*)')
 
 locations = {}
 next_locations = {}
 all_locations = {}
 
+def resolve_name(langs):
+    #if "uk" in langs:
+    #    return langs["uk"]
+    if "us" in langs:
+        return langs["us"]
+    elif "en" in langs:
+        return langs["en"]
+    else:
+        return ""
 
 # Load all requested locations from the second column of a .csv.gz file
 with gzip.open(sys.argv[1], 'rb') as idfile:
@@ -34,7 +43,7 @@ with gzip.open(sys.argv[1], 'rb') as idfile:
     for row in reader:
         m = identifier.match(row[1])
         if m:
-            locations[m.group(1)] = {"type": [], "containedby": [], "children": [], "resolved": [], "name": "", "resolvedname": ""}
+            locations[m.group(1)] = {"type": [], "containedby": [], "children": [], "resolved": [], "name": {}, "resolvedname": ""}
 
 while len(locations) > 0:
     print("Iteration with {0} locations left".format(len(locations)))
@@ -57,7 +66,7 @@ while len(locations) > 0:
                         name = mname.group(2)
                         lang = mname.group(3)
                         if lang in ["uk", "en", "us"]:
-                            locations[id]["name"] = name
+                            locations[id]["name"][lang] = name
 
     next_locations = {}
     all_locations.update(locations)
@@ -66,21 +75,24 @@ while len(locations) > 0:
         if "location.country" in locations[k]["type"]:
             # We have reached a country, we're done.
             all_locations[k]["resolved"] = k
-            all_locations[k]["resolvedname"] = locations[k]["name"]
+            all_locations[k]["resolvedname"] = resolve_name(locations[k]["name"])
             # Propagate to children
             for child in locations[k]["children"]:
                 all_locations[child]["resolved"] = k
-                all_locations[child]["resolvedname"] = locations[k]["name"]
+                all_locations[child]["resolvedname"] = resolve_name(locations[k]["name"])
         else:
             for parent in locations[k]["containedby"]:
-                if parent in all_locations:
+                if parent in all_locations and all_locations[parent]["resolvedname"] != "":
                     all_locations[k]["resolved"] = parent
-                    all_locations[k]["resolvedname"] = all_locations[parent]["name"]
+                    all_locations[k]["resolvedname"] = all_locations[parent]["resolvedname"]
+                elif parent in all_locations:
+                    # We need to add it as a child of all higher level parents
+                    pass
                 else:
                     if parent in next_locations:
                         next_locations[parent]["children"].append(k)
                     else:
-                        next_locations[parent] = {"type": [], "containedby": [], "children": [k], "resolved": [], "name": "", "resolvedname": ""}
+                        next_locations[parent] = {"type": [], "containedby": [], "children": [k], "resolved": [], "name": {}, "resolvedname": ""}
                     next_locations[parent]["children"] += locations[k]["children"]
 
     locations = next_locations
@@ -94,6 +106,6 @@ with gzip.open(sys.argv[3], 'wb') as f:
             ";".join(all_locations[k].get("containedby", [])),
             ";".join(all_locations[k]["children"]),
             ";".join(all_locations[k]["resolved"]),
-            all_locations[k]["name"],
+            resolve_name(all_locations[k]["name"]),
             all_locations[k]["resolvedname"]])
 
