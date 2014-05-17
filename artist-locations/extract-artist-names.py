@@ -5,7 +5,7 @@ import gzip
 import re
 import sys
 
-# Matches a artist-location relation, first gourp is the artist id, second the origin id
+# Matches a artist-name relation, first gourp is the artist id, second the artist's name
 # <http://rdf.freebase.com/ns/m.03d_2z>   <http://rdf.freebase.com/ns/type.object.name>   "Bloc Party"@id .
 type_name_relation = re.compile(r"<http:\/\/rdf.freebase.com\/ns\/m\.([^>]*)>\s+<http:\/\/rdf.freebase.com\/ns\/type.object.name>\s+\"(.*)")
 
