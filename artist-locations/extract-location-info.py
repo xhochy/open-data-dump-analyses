@@ -28,6 +28,8 @@ locations_file = sys.argv[3]
 
 ids = set()
 locations = {}
+type_idx = 0
+types = {}
 
 # Load all location ids
 with gzip.open(ids_file, 'rt') as idsf:
@@ -60,7 +62,11 @@ with gzip.open(dump_file, 'rt') as freebase:
         if m:
             id = m.group(1)
             if id in ids:
-                locations[id]['types'].append(m.group(2))
+                type = m.group(2)
+                if not(type in types):
+                    types[type] = type_idx
+                    type_idx += 1
+                locations[id]['types'].append(types[m.group(2)])
             continue
 
 
