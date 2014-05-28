@@ -81,7 +81,7 @@ object ExtractLocationInfo extends App {
       }
     })
 
-  println("## Extracting location tyoes")
+  println("## Extracting location types")
   val types = relevantLines.filter(_._2 == Type).groupBy(_._1).map(x => (x._1, x._2.map(_._3)))
 
   println("## Building location hierachy")
