@@ -18,7 +18,7 @@ object ExtractLocationInfo extends App {
 
   val dumpFile = args(0)
   val locationIdsFile = args(1)
-  val locationInfoFIle = args(2)
+  val locationInfoFile = args(2)
 
   val relevantRelations = HashSet(
     "http://rdf.freebase.com/ns/type.object.name",
