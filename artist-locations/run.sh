@@ -5,6 +5,7 @@ ARTIST_IDS_FILE="artist-ids.gz"
 ARIST_NAMES_FILE="artist-names.gz"
 LOCATION_IDS_FILE="locations-ids.gz"
 LOCATION_INFO_FILE="locations-info.gz"
+CLASSPATH="target/scala-2.11/artist-location-extraction-assembly-0.1.0.jar"
 
 # 1: Extract all artist ids and originsfrom Freebase
 # ./extract-artist-ids.py "${DUMP_FILE}" "${ARTIST_IDS_FILE}"
@@ -13,6 +14,6 @@ LOCATION_INFO_FILE="locations-info.gz"
 # 3: Extract all (possibly) relevant location ids
 # ./extract-relevant-locations.py "${DUMP_FILE}" "${LOCATION_IDS_FILE}"
 # 4: Extract information about these locations from Freebase
-./extract-location-info.py "${DUMP_FILE}" "${LOCATION_IDS_FILE}" "${LOCATION_INFO_FILE}"
+java -Xmx5G -cp "${CLASSPATH}" com.xhochy.freebase.ExtractLocationInfo "${DUMP_FILE}" "${LOCATION_IDS_FILE}" "${LOCATION_INFO_FILE}"
 # 5: Extract all location parent relations
 # TODO
