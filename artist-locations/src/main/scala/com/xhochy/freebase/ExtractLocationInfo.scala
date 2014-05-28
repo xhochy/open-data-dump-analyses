@@ -32,7 +32,10 @@ object ExtractLocationInfo extends App {
 
   // Extract the relevant information from the freebase dump
   println("## Parsing the freebase dump.")
-  val relevantLines = Resource.fromInputStream(new GZIPInputStream(new FileInputStream(dumpFile))).lines().filter(l => {
+  val relevantLines = Resource.fromInputStream(new GZIPInputStream(new FileInputStream(dumpFile)))
+    .lines()
+    // .take(10000000)
+    .filter(l => {
       // Check if the line is about an ID we care about.
       if (l.startsWith("<http://rdf.freebase.com/ns/m.") && ids.contains(l.slice(30, l.indexOf(">")))) {
         val relation = l.slice(l.indexOf("<", l.indexOf(">") + 1) + 1, l.indexOf(">", l.indexOf(">") + 1))
