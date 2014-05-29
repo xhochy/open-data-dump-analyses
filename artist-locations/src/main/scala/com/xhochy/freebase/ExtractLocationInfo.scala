@@ -1,7 +1,9 @@
 package com.xhochy.freebase
 
-import java.io.FileInputStream
-import java.util.zip.GZIPInputStream
+import java.io.{ OutputStreamWriter, FileInputStream, FileOutputStream }
+import java.util.zip.{ GZIPInputStream, GZIPOutputStream }
+import org.yaml.snakeyaml.Yaml
+import scala.collection.JavaConverters._
 import scala.collection.immutable.HashSet
 import scalax.io.Resource
 
@@ -12,13 +14,14 @@ object ExtractLocationInfo extends App {
   }
   import Relation._
 
-  if (args.length < 3) {
+  if (args.length < 4) {
     println("Need to specify at least the 3 files used")
   }
 
   val dumpFile = args(0)
   val locationIdsFile = args(1)
-  val locationInfoFile = args(2)
+  val locationNamesFile = args(2)
+  val locationTypesFile = args(3)
 
   val relevantRelations = HashSet(
     "http://rdf.freebase.com/ns/type.object.name",
@@ -77,11 +80,12 @@ object ExtractLocationInfo extends App {
           List[(String, String)]()
         }
       }
-    })
+    }).toMap
+  // Save the names as a YAML file.
+  new Yaml().dump(names.asJava, new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(locationNamesFile))))
 
   println("## Extracting location types")
-  val types = relevantLines.filter(_._2 == Type).groupBy(_._1).map(x => (x._1, x._2.map(_._3)))
-
-  println(relevantLines.length)
+  val types = relevantLines.filter(_._2 == Type).groupBy(_._1).map(x => (x._1, x._2.map(_._3).toArray)).toMap
+  new Yaml().dump(types.asJava, new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(locationTypesFile))))
 }
 // vim: set ts=2 sw=2 et:
