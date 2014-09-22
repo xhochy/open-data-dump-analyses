@@ -37,6 +37,9 @@ public class Main {
         } else if (jobname.equals("artistplainwords")) {
             job.setJarByClass(ArtistPlainWords.class);
             job.setMapperClass(ArtistPlainWords.TokenizerMapper.class);
+        } else if (jobname.equals("artistplaintriplets")) {
+            job.setJarByClass(ArtistPlainTriplets.class);
+            job.setMapperClass(ArtistPlainTriplets.TokenizerMapper.class);
         } else {
             System.err.println("Jobname not found!");
             System.exit(1);
