@@ -24,13 +24,19 @@ public class Main {
         String jobname = args[0];
         Job job = Job.getInstance(conf, jobname);
 
+        job.setCombinerClass(ArtistNames.IntSumReducer.class);
+        job.setReducerClass(ArtistNames.IntSumReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
         if (jobname.equals("artistnames")) {
             job.setJarByClass(ArtistNames.class);
             job.setMapperClass(ArtistNames.TokenizerMapper.class);
-            job.setCombinerClass(ArtistNames.IntSumReducer.class);
-            job.setReducerClass(ArtistNames.IntSumReducer.class);
-            job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(IntWritable.class);
+        } else if (jobname.equals("artistwords")) {
+            job.setJarByClass(ArtistWords.class);
+            job.setMapperClass(ArtistWords.TokenizerMapper.class);
+        } else if (jobname.equals("artistplainwords")) {
+            job.setJarByClass(ArtistPlainWords.class);
+            job.setMapperClass(ArtistPlainWords.TokenizerMapper.class);
         } else {
             System.err.println("Jobname not found!");
             System.exit(1);
