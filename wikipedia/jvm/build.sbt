@@ -17,7 +17,7 @@ name := "wikipedia-dump-analysis"
 
 version := "0.1.0"
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.6"
 
 organization := "com.xhochy"
 
@@ -31,7 +31,6 @@ libraryDependencies ++= {
             "net.jpountz.lz4" % "lz4" % "1.2.0",
             "org.specs2" %% "specs2" % "2.3.12" % "test",
     		"org.scalatest" %% "scalatest" % "2.1.6" % "test",
-    		"org.scala-lang" % "scala-compiler" % "2.11.1",
             "org.slf4j" % "slf4j-simple" % "1.7.7",
             "org.yaml" % "snakeyaml" % "1.13"
   	)
