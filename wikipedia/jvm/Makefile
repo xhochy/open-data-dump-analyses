@@ -3,7 +3,9 @@ JVM_OPTS ?= -Xmx5G
 DATADIR ?= /mnt/newspace/data
 PAGES_DUMP_FILE = $(DATADIR)/$(PREFIX)wiki-latest-page.sql.gz
 PAGELINKS_DUMP_FILE= $(DATADIR)/$(PREFIX)wiki-latest-pagelinks.sql.gz
+PAGELINKS_TRIPLE = $(DATADIR)/$(PREFIX)wiki-latest-pagelinks.bz2
 PAGE_REVERSE_INDEX_FILE = $(DATADIR)/$(PREFIX)-page-reverse-index.lz4
+PAGE_TRIPLE_FILE = $(DATADIR)/$(PREFIX)-page-triple.bz2
 INTRALINK_GRAPH_EDGELIST = $(DATADIR)/$(PREFIX)-intralink-graph-edgelist.lz4
 INTRALINK_GRAPH_ADJACENCYARRAY = $(DATADIR)/$(PREFIX)-intralink-graph-adjacencyarray
 CATEGORY_HISTOGRAM = $(DATADIR)/$(PREFIX)-category-histogram.yaml.lz4
@@ -18,11 +20,22 @@ CLASSPATH = target/scala-2.11/wikipedia-dump-analysis-assembly-0.1.0.jar
 $(PAGE_REVERSE_INDEX_FILE): $(PAGES_DUMP_FILE)
 	java $(JVM_OPTS) -cp "$(CLASSPATH)" com.xhochy.wikipedia.PageReverseIndex "$(PAGES_DUMP_FILE)" "$(PAGE_REVERSE_INDEX_FILE)"
 
+# Parse the page table and create a file with the triples (namespace_id, id, base64(title))
+$(PAGE_TRIPLE_FILE): $(PAGES_DUMP_FILE)
+	java $(JVM_OPTS) -cp "$(CLASSPATH)" com.xhochy.wikipedia.PageTriples "$(PAGES_DUMP_FILE)" "$(PAGE_TRIPLE_FILE)"
+
 pagereverseindex: $(PAGE_REVERSE_INDEX_FILE)
+
+pagetriples: $(PAGE_TRIPLE_FILE)
 
 # Parse the pagelinks table and create a edge list represented graph
 $(INTRALINK_GRAPH_EDGELIST): $(PAGE_REVERSE_INDEX_FILE) $(PAGELINKS_DUMP_FILE)
 	java $(JVM_OPTS) -cp "$(CLASSPATH)" com.xhochy.wikipedia.IntraLinkGraph "$(PAGELINKS_DUMP_FILE)" "$(PAGE_REVERSE_INDEX_FILE)" "$(INTRALINK_GRAPH_EDGELIST)"
+
+$(PAGELINKS_TRIPLE): $(PAGELINKS_DUMP_FILE)
+	java $(JVM_OPTS) -cp "$(CLASSPATH)" com.xhochy.wikipedia.PageLinksTriple "$(PAGELINKS_DUMP_FILE)" "$(PAGELINKS_TRIPLE)"
+
+pagelinks: $(PAGELINKS_TRIPLE)
 
 # We want to work on adjacency arrays instead of edge lists
 $(INTRALINK_GRAPH_ADJACENCYARRAY): $(INTRALINK_GRAPH_EDGELIST)

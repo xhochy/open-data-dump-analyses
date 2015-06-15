@@ -28,6 +28,7 @@ libraryDependencies ++= {
             "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.3",
             "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
             "commons-codec" % "commons-codec" % "1.9",
+            "org.apache.commons" % "commons-compress" % "1.9",
             "net.jpountz.lz4" % "lz4" % "1.2.0",
             "org.specs2" %% "specs2" % "2.3.12" % "test",
     		"org.scalatest" %% "scalatest" % "2.1.6" % "test",
