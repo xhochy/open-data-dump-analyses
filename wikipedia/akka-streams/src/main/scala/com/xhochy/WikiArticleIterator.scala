@@ -1,0 +1,59 @@
+package com.xhochy
+
+import java.io.InputStream
+import scala.io.Source
+import scala.xml.pull.{EvElemEnd, EvElemStart, EvText, XMLEventReader}
+
+class WikiArticleIterator(val is: InputStream) extends Iterator[String] {
+  val xml = new XMLEventReader(Source.fromInputStream(is))
+  var page:Option[String] = nextPage()
+
+  def nextPage():Option[String] = {
+    var inPage = false
+    var textStarted = false
+    val builder = new StringBuilder()
+    while (xml.hasNext) {
+      val event = xml.next()
+      event match {
+        case EvElemStart(_, "page", _, _) => {
+          inPage = true
+        }
+        case EvElemEnd(_, "page") => {
+          // We have parsed a page successfully
+          return Some(builder.toString)
+        }
+        case EvElemStart(_, "text", _, _) => {
+          if (inPage) {
+            textStarted = true
+          }
+        }
+        case EvText(t) => {
+          if (textStarted) {
+           builder.append(t)
+          }
+        }
+        case EvElemEnd(_, "text") => {
+          if (textStarted) {
+            textStarted = false
+          }
+        }
+        case _ => {}
+      }
+    }
+
+    // On reaching this point we have exhausted the XML document.
+    return None
+  }
+
+  // Proxy the state of the Option monad
+  def hasNext = !page.isEmpty
+
+  def next():String = {
+    val content = page.get
+    page = nextPage()
+    content
+  }
+}
+
+
+// vim: set ts=2 sw=2 et sts=2:
