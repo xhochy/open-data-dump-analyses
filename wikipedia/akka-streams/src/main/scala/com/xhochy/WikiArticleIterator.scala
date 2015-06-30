@@ -4,13 +4,17 @@ import java.io.InputStream
 import scala.io.Source
 import scala.xml.pull.{EvElemEnd, EvElemStart, EvText, XMLEventReader}
 
-class WikiArticleIterator(val is: InputStream) extends Iterator[String] {
-  val xml = new XMLEventReader(Source.fromInputStream(is))
-  var page:Option[String] = nextPage()
+case class WikiArticle(title: String, text: String)
 
-  def nextPage():Option[String] = {
+class WikiArticleIterator(val is: InputStream) extends Iterator[WikiArticle] {
+  val xml = new XMLEventReader(Source.fromInputStream(is))
+  var page:Option[WikiArticle] = nextPage()
+
+  def nextPage():Option[WikiArticle] = {
     var inPage = false
     var textStarted = false
+    var titleStarted = false
+    val titleBuilder = new StringBuilder()
     val builder = new StringBuilder()
     while (xml.hasNext) {
       val event = xml.next()
@@ -20,7 +24,7 @@ class WikiArticleIterator(val is: InputStream) extends Iterator[String] {
         }
         case EvElemEnd(_, "page") => {
           // We have parsed a page successfully
-          return Some(builder.toString)
+          return Some(WikiArticle(titleBuilder.toString, builder.toString))
         }
         case EvElemStart(_, "text", _, _) => {
           if (inPage) {
@@ -30,12 +34,20 @@ class WikiArticleIterator(val is: InputStream) extends Iterator[String] {
         case EvText(t) => {
           if (textStarted) {
            builder.append(t)
+          } else if (titleStarted) {
+            titleBuilder.append(t)
           }
         }
         case EvElemEnd(_, "text") => {
           if (textStarted) {
             textStarted = false
           }
+        }
+        case EvElemStart(_, "title", _, _) => {
+          titleStarted = true
+        }
+        case EvElemEnd(_, "title") => {
+          titleStarted = false
         }
         case _ => {}
       }
@@ -48,7 +60,7 @@ class WikiArticleIterator(val is: InputStream) extends Iterator[String] {
   // Proxy the state of the Option monad
   def hasNext = !page.isEmpty
 
-  def next():String = {
+  def next():WikiArticle = {
     val content = page.get
     page = nextPage()
     content

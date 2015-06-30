@@ -17,20 +17,20 @@ object ArticleType extends Enumeration {
 
 
 object MusicArticles {
-  def source(filename:String): Source[String, Unit] = {
+  def source(filename:String): Source[WikiArticle, Unit] = {
     val fis = new FileInputStream(filename)
     val bcis = new BZip2CompressorInputStream(fis)
     val iter = new WikiArticleIterator(bcis)
     Source(() => iter)
   }
 
-  def guessType(content: String)(implicit ec: ExecutionContext):Future[ArticleType.Value] = {
+  def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[ArticleType.Value] = {
     Future {
-      if (content.contains("{{Infobox musical artist")) {
+      if (content.text.contains("{{Infobox musical artist")) {
         ArticleType.Artist
-      } else if (content.contains("{{Infobox album")) {
+      } else if (content.text.contains("{{Infobox album")) {
         ArticleType.Album
-      } else if (content.contains("{{Infobox single")) {
+      } else if (content.text.contains("{{Infobox single")) {
         ArticleType.Song
       } else {
         ArticleType.Other
