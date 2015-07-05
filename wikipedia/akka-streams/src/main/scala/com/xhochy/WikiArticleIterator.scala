@@ -11,11 +11,16 @@ class WikiArticleIterator(val is: InputStream) extends Iterator[WikiArticle] {
   var page:Option[WikiArticle] = nextPage()
 
   def nextPage():Option[WikiArticle] = {
+    // States
     var inPage = false
     var textStarted = false
     var titleStarted = false
+
+    // Buffers to build the strings
     val titleBuilder = new StringBuilder()
     val builder = new StringBuilder()
+
+    // State machine iteration
     while (xml.hasNext) {
       val event = xml.next()
       event match {
