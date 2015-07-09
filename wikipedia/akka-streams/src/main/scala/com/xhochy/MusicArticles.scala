@@ -10,12 +10,6 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.{Source => IOSource}
 
-object ArticleType extends Enumeration {
-  type ArticleType = Value
-  val Artist, Song, Album, Other = Value
-}
-
-
 object MusicArticles {
   def source(filename:String): Source[WikiArticle, Unit] = {
     val fis = new FileInputStream(filename)
@@ -24,16 +18,16 @@ object MusicArticles {
     Source(() => iter)
   }
 
-  def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[ArticleType.Value] = {
+  def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[Article] = {
     Future {
       if (content.text.contains("{{Infobox musical artist")) {
-        ArticleType.Artist
+        new Article(content.title, ArticleType.Artist)
       } else if (content.text.contains("{{Infobox album")) {
-        ArticleType.Album
+        new Article(content.title, ArticleType.Album)
       } else if (content.text.contains("{{Infobox single")) {
-        ArticleType.Song
+        new Article(content.title, ArticleType.Song)
       } else {
-        ArticleType.Other
+        new Article(content.title, ArticleType.Other)
       }
     }
   }
@@ -45,14 +39,14 @@ object MusicArticles {
 
     val numCPUs = Runtime.getRuntime().availableProcessors()
 
-    val sink = Sink.fold(0)((x:Int, y:ArticleType.Value) => {
+    val sink = Sink.fold(0)((x:Int, y:Article) => {
         if ((x % 25) == 0) {
           println(x)
         }
         x + 1
       })
     val src = source(args(0))
-    val counter = src.mapAsyncUnordered(numCPUs)(guessType).filter(_ == ArticleType.Artist).toMat(sink)(Keep.right)
+    val counter = src.mapAsyncUnordered(numCPUs)(guessType).filter(_.articleType == ArticleType.Artist).toMat(sink)(Keep.right)
     val sum: Future[Int] = counter.run()
     sum.foreach(c => println(s"Total artist pages found: $c"))
   }
