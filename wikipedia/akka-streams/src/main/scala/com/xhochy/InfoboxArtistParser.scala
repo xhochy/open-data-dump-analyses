@@ -14,15 +14,20 @@ case class Infobox(attributes: List[InfoboxAttribute])
  */
 class InfoboxArtistParser extends RegexParsers {
   override type Elem = Char
-  def start = "{{Infobox musical artist" ~ comment.?
-  def end = "|".? ~ "}}"
+  override def skipWhitespace = false
+  /**
+   * Start with "{{Infobox musical artist" and skip the trailing rest of this
+   * line as we do not utilise the information (yet).
+   */
+  def start = "\\{\\{Infobox musical artist( )*(\\|[^\n]*)*".r ~ comment.?
+  def end = "\n|".? ~ "\\s*}}".r
   def comment = "!--[^\n]*".r
   def key = "[^=\\}]+".r ^^ { n => n.trim() }
-  def variable = "\\{\\{[^\\}]*}}".r
-  def link = ("\\[\\[[^\\]]*\\]\\]".r) | ("\\[[^\\[\\]]*\\]".r)
-  def valuetext = "[^|\\}\\{\\[]+".r
+  def variable = "\\n?\\{\\{[^\\}]*}}".r
+  def link = ("\\s*\\[\\[[^\\]]*\\]\\]".r) | ("\\s*\\[[^\\[\\]]*\\]".r)
+  def valuetext = "\\s*[^|\\}\\{\\[\n][^\\}\\{\\[\n]*".r
   def value = (valuetext | variable | link)*
-  def attribute = "|" ~ key ~ "=" ~ value ^^
+  def attribute = "\n( )*|".r ~ key ~ "=" ~ value ^^
   { case l~k~e~v => InfoboxAttribute(k, v.mkString("")) }
   def attributes = attribute*
   def box = start ~> attributes <~ end ^^ { a => Infobox(a) }
