@@ -15,8 +15,9 @@ case class Infobox(attributes: List[InfoboxAttribute])
 class InfoboxArtistParser extends RegexParsers {
   override type Elem = Char
   def start = "{{Infobox musical artist" ~ comment.?
+  def end = "|".? ~ "}}"
   def comment = "!-- [^\n]*".r
-  def key = "[^=]+".r ^^ { n => n.trim() }
+  def key = "[^=\\}]+".r ^^ { n => n.trim() }
   def variable = "\\{\\{[^\\}]*}}".r
   def link = ("\\[\\[[^\\]]*\\]\\]".r) | ("\\[[^\\[\\]]*\\]".r)
   def valuetext = "[^|\\}\\{\\[]+".r
@@ -24,7 +25,7 @@ class InfoboxArtistParser extends RegexParsers {
   def attribute = "|" ~ key ~ "=" ~ value ^^
   { case l~k~e~v => InfoboxAttribute(k, v.mkString("")) }
   def attributes = attribute*
-  def box = start ~> attributes <~ "}}" ^^ { a => Infobox(a) }
+  def box = start ~> attributes <~ end ^^ { a => Infobox(a) }
 }
 
 // vim: set ts=2 sw=2 et sts=2:
