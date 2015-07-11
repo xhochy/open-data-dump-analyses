@@ -16,7 +16,7 @@ class InfoboxArtistParser extends RegexParsers {
   override type Elem = Char
   def start = "{{Infobox musical artist" ~ comment.?
   def end = "|".? ~ "}}"
-  def comment = "!-- [^\n]*".r
+  def comment = "!--[^\n]*".r
   def key = "[^=\\}]+".r ^^ { n => n.trim() }
   def variable = "\\{\\{[^\\}]*}}".r
   def link = ("\\[\\[[^\\]]*\\]\\]".r) | ("\\[[^\\[\\]]*\\]".r)
