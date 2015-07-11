@@ -28,15 +28,15 @@ object MusicArticles {
       if (content.text.contains(INFOBOX_ARTIST_START)) {
         val infoboxStart = content.text.indexOfSlice(INFOBOX_ARTIST_START)
         val infoboxEnd = content.text.indexOfSlice(INFOBOX_ARTIST_END, infoboxStart) + INFOBOX_ARTIST_END.size
-        val infobox = content.text.slice(infoboxStart, infoboxEnd)
-        parser.parseAll(parser.box, infobox) match {
+        val infobox = content.text.drop(infoboxStart)
+        parser.parse(parser.box, infobox) match {
           case parser.Success(box, _) => {
-            println(box)
             new ArtistArticle(content.title, List(""))
           }
           case x => {
             println("Could not parse the following artist infobox:")
             println(x)
+            println(infobox)
             System.exit(0)
             new Article(content.title, ArticleType.Artist)
           }
