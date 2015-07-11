@@ -18,8 +18,9 @@ class InfoboxArtistParser extends RegexParsers {
   def comment = "!-- [^\n]*".r
   def key = "[^=]+".r ^^ { n => n.trim() }
   def variable = "\\{\\{[^\\}]*}}".r
-  def valuetext = "[^|\\}\\{]+".r
-  def value = (valuetext | variable)*
+  def link = ("\\[\\[[^\\]]*\\]\\]".r) | ("\\[[^\\[\\]]*\\]".r)
+  def valuetext = "[^|\\}\\{\\[]+".r
+  def value = (valuetext | variable | link)*
   def attribute = "|" ~ key ~ "=" ~ value ^^
   { case l~k~e~v => InfoboxAttribute(k, v.mkString("")) }
   def attributes = attribute*
