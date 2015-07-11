@@ -1,0 +1,25 @@
+package com.xhochy
+
+import scala.util.parsing.combinator.RegexParsers
+
+
+case class InfoboxAttribute(key: String, value: String)
+case class Infobox(attributes: List[InfoboxAttribute])
+
+/**
+ * Parses a Wikipedia Infobox for Artists. 
+ *
+ * This is made as all other infobox on MediaWiki by a fixed prefix and then
+ * (key, value) pairs of the the type "|key = value".
+ */
+class InfoboxArtistParser extends RegexParsers {
+  override type Elem = Char
+  def key = "[^=]+".r ^^ { n => n.trim() }
+  def value = "[^|\\}]*".r
+  def attribute = "|" ~ key ~ "=" ~ value ^^
+  { case l~k~e~v => InfoboxAttribute(k, v) }
+  def attributes = attribute*
+  def box = "{{Infobox musical artist" ~> attributes <~ "}}" ^^ { a => Infobox(a) }
+}
+
+// vim: set ts=2 sw=2 et sts=2:

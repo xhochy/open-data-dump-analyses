@@ -11,6 +11,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.io.{Source => IOSource}
 
 object MusicArticles {
+  val INFOBOX_ARTIST_START = "{{Infobox musical artist"
+  val INFOBOX_ARTIST_END = "}}"
+
+  val parser = new InfoboxArtistParser()
+
   def source(filename:String): Source[WikiArticle, Unit] = {
     val fis = new FileInputStream(filename)
     val bcis = new BZip2CompressorInputStream(fis)
@@ -20,8 +25,22 @@ object MusicArticles {
 
   def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[Article] = {
     Future {
-      if (content.text.contains("{{Infobox musical artist")) {
-        new Article(content.title, ArticleType.Artist)
+      if (content.text.contains(INFOBOX_ARTIST_START)) {
+        val infoboxStart = content.text.indexOfSlice(INFOBOX_ARTIST_START)
+        val infoboxEnd = content.text.indexOfSlice(INFOBOX_ARTIST_END, infoboxStart) + INFOBOX_ARTIST_END.size
+        val infobox = content.text.slice(infoboxStart, infoboxEnd)
+        parser.parseAll(parser.box, infobox) match {
+          case parser.Success(box, _) => {
+            println(box)
+            new ArtistArticle(content.title, List(""))
+          }
+          case x => {
+            println("Could not parse the following artist infobox:")
+            println(x)
+            System.exit(0)
+            new Article(content.title, ArticleType.Artist)
+          }
+        }
       } else if (content.text.contains("{{Infobox album")) {
         new Article(content.title, ArticleType.Album)
       } else if (content.text.contains("{{Infobox single")) {
