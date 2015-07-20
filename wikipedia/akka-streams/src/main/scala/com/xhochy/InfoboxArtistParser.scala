@@ -20,16 +20,18 @@ class InfoboxArtistParser extends RegexParsers {
    * line as we do not utilise the information (yet).
    */
   def start = "\\{\\{Infobox musical artist( )*(\\|[^\n]*)*".r ~ comment.?
-  def end = "\n|".? ~ "\\s*}}".r
+  def end = "\n\\|".r.? ~ "\\|?\\s*}}".r
   def comment = "!--[^\n]*".r
   def key = "[^=\\}]+".r ^^ { n => n.trim() }
   def variable = "\\n?\\{\\{[^\\}]*}}".r
   def link = ("\\s*\\[\\[[^\\]]*\\]\\]".r) | ("\\s*\\[[^\\[\\]]*\\]".r)
   def valuetext = "\\s*[^|\\}\\{\\[\n][^\\}\\{\\[\n]*".r
   def value = (valuetext | variable | link)*
+  def macroAttribute = "\n( )*|\\{\\{[^\\}]*\\}\\}".r ^^
+  { case _ => InfoboxAttribute("", "") }
   def attribute = "\n( )*|".r ~ key ~ "=" ~ value ^^
   { case l~k~e~v => InfoboxAttribute(k, v.mkString("")) }
-  def attributes = attribute*
+  def attributes = (attribute | macroAttribute)*
   def box = start ~> attributes <~ end ^^ { a => Infobox(a) }
 }
 
