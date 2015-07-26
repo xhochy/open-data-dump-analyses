@@ -5,8 +5,8 @@ import akka.stream.ActorMaterializer
 import akka.stream.io.{Framing, InputStreamSource}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.util.ByteString
-import java.io.{File, FileInputStream}
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
+import java.io.{BufferedWriter, File, FileInputStream, FileOutputStream, OutputStreamWriter}
+import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2CompressorOutputStream}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.{Source => IOSource}
 
@@ -34,10 +34,18 @@ object MusicArticles {
             new ArtistArticle(content.title, List(""))
           }
           case x => {
-            println("Could not parse the following artist infobox:")
-            println(x)
-            println(infobox)
-            System.exit(0)
+            println("Could not parse the following artist infobox: " + content.title)
+            val fos = new FileOutputStream("parsing-failed/" + content.title + ".bz2")
+            val bcos = new BZip2CompressorOutputStream(fos)
+            val osw = new OutputStreamWriter(bcos)
+            val bw = new BufferedWriter(osw)
+            bw.write(infobox)
+            bw.close()
+            osw.close()
+            bcos.close()
+            fos.close()
+
+            // TODO: Maybe return None here?
             new Article(content.title, ArticleType.Artist)
           }
         }
