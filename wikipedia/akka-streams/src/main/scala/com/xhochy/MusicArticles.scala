@@ -59,9 +59,7 @@ object MusicArticles {
     val numCPUs = Runtime.getRuntime().availableProcessors()
 
     val sink = Sink.fold(0)((x:Int, y:Article) => {
-        if ((x % 25) == 0) {
-          println(x)
-        }
+        print(x.toString + "\r")
         x + 1
       })
     val src = source(args(0))
