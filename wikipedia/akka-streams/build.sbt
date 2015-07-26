@@ -25,7 +25,7 @@ mainClass := Some("com.xhochy.MusicArticles")
 
 libraryDependencies ++= {
   	Seq(
-        "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC4",
+        "com.typesafe.akka" %% "akka-stream-experimental" % "1.0",
         "org.apache.commons" % "commons-compress" % "1.9",
         "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
         "org.scala-lang.modules" %% "scala-xml" % "1.0.4"
