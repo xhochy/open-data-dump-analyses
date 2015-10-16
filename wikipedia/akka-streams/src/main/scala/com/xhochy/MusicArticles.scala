@@ -73,6 +73,11 @@ object MusicArticles {
     val src = source(args(0))
     val counter = src.mapAsyncUnordered(numCPUs)(guessType).filter(_.articleType == ArticleType.Artist).toMat(sink)(Keep.right)
     val sum: Future[Int] = counter.run()
+    sum.andThen({
+        case _ =>
+          system.shutdown()
+          system.awaitTermination()
+      })
     sum.foreach(c => println(s"Total artist pages found: $c"))
   }
 }
