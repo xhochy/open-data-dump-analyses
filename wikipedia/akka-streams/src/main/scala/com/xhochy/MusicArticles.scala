@@ -6,6 +6,7 @@ import akka.stream.io.{Framing, InputStreamSource}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.util.ByteString
 import java.io.{BufferedWriter, File, FileInputStream, FileOutputStream, OutputStreamWriter}
+import java.util.Base64
 import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2CompressorOutputStream}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.{Source => IOSource}
@@ -13,8 +14,6 @@ import scala.io.{Source => IOSource}
 object MusicArticles {
   val INFOBOX_ARTIST_START = "{{Infobox musical artist"
   val INFOBOX_ARTIST_END = "}}"
-
-  val parser = new InfoboxArtistParser()
 
   def source(filename:String): Source[WikiArticle, Unit] = {
     val fis = new FileInputStream(filename)
@@ -26,35 +25,13 @@ object MusicArticles {
   def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[Article] = {
     Future {
       if (content.text.contains(INFOBOX_ARTIST_START)) {
-        val infoboxStart = content.text.indexOfSlice(INFOBOX_ARTIST_START)
-        val infoboxEnd = content.text.indexOfSlice(INFOBOX_ARTIST_END, infoboxStart) + INFOBOX_ARTIST_END.size
-        val infobox = content.text.drop(infoboxStart)
-        parser.parse(parser.box, infobox) match {
-          case parser.Success(box, _) => {
-            new ArtistArticle(content.title, List(""))
-          }
-          case x => {
-            println("Could not parse the following artist infobox: " + content.title)
-            val fos = new FileOutputStream("parsing-failed/" + content.title + ".bz2")
-            val bcos = new BZip2CompressorOutputStream(fos)
-            val osw = new OutputStreamWriter(bcos)
-            val bw = new BufferedWriter(osw)
-            bw.write(infobox)
-            bw.close()
-            osw.close()
-            bcos.close()
-            fos.close()
-
-            // TODO: Maybe return None here?
-            new Article(content.title, ArticleType.Artist)
-          }
-        }
+        new Article(content.title, ArticleType.Artist, content.text)
       } else if (content.text.contains("{{Infobox album")) {
-        new Article(content.title, ArticleType.Album)
+        new Article(content.title, ArticleType.Album, content.text)
       } else if (content.text.contains("{{Infobox single")) {
-        new Article(content.title, ArticleType.Song)
+        new Article(content.title, ArticleType.Song, content.text)
       } else {
-        new Article(content.title, ArticleType.Other)
+        new Article(content.title, ArticleType.Other, content.text)
       }
     }
   }
@@ -68,6 +45,12 @@ object MusicArticles {
 
     val sink = Sink.fold(0)((x:Int, y:Article) => {
         print(x.toString + "\r")
+        val filename = "articles/" + Base64.getEncoder().encodeToString(y.title.getBytes()) + ".txt.bz2"
+        val fos = new FileOutputStream(filename)
+        val bcos = new BZip2CompressorOutputStream(fos)
+        bcos.write(y.text.getBytes)
+        bcos.close()
+        fos.close()
         x + 1
       })
     val src = source(args(0))
