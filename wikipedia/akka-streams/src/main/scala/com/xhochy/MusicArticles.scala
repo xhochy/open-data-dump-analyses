@@ -24,13 +24,19 @@ object MusicArticles {
 
   def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[Article] = {
     Future {
-      if (content.text.contains(INFOBOX_ARTIST_START)) {
-        new Article(content.title, ArticleType.Artist, content.text)
-      } else if (content.text.contains("{{Infobox album")) {
-        new Article(content.title, ArticleType.Album, content.text)
-      } else if (content.text.contains("{{Infobox single")) {
-        new Article(content.title, ArticleType.Song, content.text)
-      } else {
+      try {
+        if (content.text.contains(INFOBOX_ARTIST_START)) {
+          new Article(content.title, ArticleType.Artist, content.text)
+        } else if (content.text.contains("{{Infobox album")) {
+          new Article(content.title, ArticleType.Album, content.text)
+        } else if (content.text.contains("{{Infobox single")) {
+          new Article(content.title, ArticleType.Song, content.text)
+        } else {
+          new Article(content.title, ArticleType.Other, content.text)
+        }
+      } catch {
+        case e:Exception => print(e)
+        System.exit(1)
         new Article(content.title, ArticleType.Other, content.text)
       }
     }
@@ -45,7 +51,8 @@ object MusicArticles {
 
     val sink = Sink.fold(0)((x:Int, y:Article) => {
         print(x.toString + "\r")
-        val filename = "articles/" + Base64.getEncoder().encodeToString(y.title.getBytes()) + ".txt.bz2"
+        val filename = "articles/" + Base64.getUrlEncoder().encodeToString(y.title.getBytes()).replace("/", "_") + ".txt.bz2"
+        println(filename)
         val fos = new FileOutputStream(filename)
         val bcos = new BZip2CompressorOutputStream(fos)
         bcos.write(y.text.getBytes)
