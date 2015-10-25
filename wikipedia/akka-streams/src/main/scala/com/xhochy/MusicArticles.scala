@@ -5,7 +5,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.io.{Framing, InputStreamSource}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.util.ByteString
-import java.io.{BufferedWriter, File, FileInputStream, FileOutputStream, OutputStreamWriter}
+import java.io.{BufferedWriter, ByteArrayOutputStream, File, FileInputStream, FileOutputStream, OutputStreamWriter}
 import java.util.Base64
 import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2CompressorOutputStream}
 import scala.concurrent.{ExecutionContext, Future}
@@ -24,20 +24,19 @@ object MusicArticles {
 
   def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[Article] = {
     Future {
-      try {
-        if (content.text.contains(INFOBOX_ARTIST_START)) {
-          new Article(content.title, ArticleType.Artist, content.text)
-        } else if (content.text.contains("{{Infobox album")) {
-          new Article(content.title, ArticleType.Album, content.text)
-        } else if (content.text.contains("{{Infobox single")) {
-          new Article(content.title, ArticleType.Song, content.text)
-        } else {
-          new Article(content.title, ArticleType.Other, content.text)
-        }
-      } catch {
-        case e:Exception => print(e)
-        System.exit(1)
-        new Article(content.title, ArticleType.Other, content.text)
+      val baos = new ByteArrayOutputStream()
+      val bcos = new BZip2CompressorOutputStream(baos)
+      bcos.write(content.text.getBytes)
+      bcos.close()
+      baos.toByteArray
+      if (content.text.contains(INFOBOX_ARTIST_START)) {
+        new Article(content.title, ArticleType.Artist, baos.toByteArray)
+      } else if (content.text.contains("{{Infobox album")) {
+        new Article(content.title, ArticleType.Album, baos.toByteArray)
+      } else if (content.text.contains("{{Infobox single")) {
+        new Article(content.title, ArticleType.Song, baos.toByteArray)
+      } else {
+        new Article(content.title, ArticleType.Other, baos.toByteArray)
       }
     }
   }
@@ -50,14 +49,11 @@ object MusicArticles {
     val numCPUs = Runtime.getRuntime().availableProcessors()
 
     val sink = Sink.fold(0)((x:Int, y:Article) => {
-        print(x.toString + "\r")
         val filename = "articles/" + Base64.getUrlEncoder().encodeToString(y.title.getBytes()).replace("/", "_") + ".txt.bz2"
-        println(filename)
         val fos = new FileOutputStream(filename)
-        val bcos = new BZip2CompressorOutputStream(fos)
-        bcos.write(y.text.getBytes)
-        bcos.close()
+        fos.write(y.compressedContent)
         fos.close()
+        print(x.toString + "\r")
         x + 1
       })
     val src = source(args(0))
