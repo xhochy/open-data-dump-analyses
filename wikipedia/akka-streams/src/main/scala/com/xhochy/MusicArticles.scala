@@ -39,7 +39,7 @@ object MusicArticles {
       } else if (content.text.contains("{{Infobox single")) {
         new Article(content.title, ArticleType.Song, compressContent(content))
       } else {
-        new Article(content.title, ArticleType.Other, compressContent(content))
+        new Article(content.title, ArticleType.Other, new Array[Byte](0))
       }
     }
   }
