@@ -22,21 +22,24 @@ object MusicArticles {
     Source(() => iter)
   }
 
+  def compressContent(content: WikiArticle) = {
+    val baos = new ByteArrayOutputStream()
+    val bcos = new BZip2CompressorOutputStream(baos)
+    bcos.write(content.text.getBytes)
+    bcos.close()
+    baos.toByteArray
+  }
+
   def guessType(content: WikiArticle)(implicit ec: ExecutionContext):Future[Article] = {
     Future {
-      val baos = new ByteArrayOutputStream()
-      val bcos = new BZip2CompressorOutputStream(baos)
-      bcos.write(content.text.getBytes)
-      bcos.close()
-      baos.toByteArray
       if (content.text.contains(INFOBOX_ARTIST_START)) {
-        new Article(content.title, ArticleType.Artist, baos.toByteArray)
+        new Article(content.title, ArticleType.Artist, compressContent(content))
       } else if (content.text.contains("{{Infobox album")) {
-        new Article(content.title, ArticleType.Album, baos.toByteArray)
+        new Article(content.title, ArticleType.Album, compressContent(content))
       } else if (content.text.contains("{{Infobox single")) {
-        new Article(content.title, ArticleType.Song, baos.toByteArray)
+        new Article(content.title, ArticleType.Song, compressContent(content))
       } else {
-        new Article(content.title, ArticleType.Other, baos.toByteArray)
+        new Article(content.title, ArticleType.Other, compressContent(content))
       }
     }
   }
