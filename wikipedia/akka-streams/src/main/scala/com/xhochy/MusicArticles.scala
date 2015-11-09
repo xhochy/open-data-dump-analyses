@@ -44,6 +44,19 @@ object MusicArticles {
     }
   }
 
+  def storeArticle(x:Int, article:Article) = {
+    val filename = "articles/" +
+      Base64.getUrlEncoder()
+        .encodeToString(article.title.getBytes())
+        .replace("/", "_") +
+      ".txt.bz2"
+    val fos = new FileOutputStream(filename)
+    fos.write(article.compressedContent)
+    fos.close()
+    print(x.toString + "\r")
+    x + 1
+  }
+
   def main(args: Array[String]) {
     implicit val system = ActorSystem("music-articles")
     implicit val materializer = ActorMaterializer()
@@ -51,14 +64,7 @@ object MusicArticles {
 
     val numCPUs = Runtime.getRuntime().availableProcessors()
 
-    val sink = Sink.fold(0)((x:Int, y:Article) => {
-        val filename = "articles/" + Base64.getUrlEncoder().encodeToString(y.title.getBytes()).replace("/", "_") + ".txt.bz2"
-        val fos = new FileOutputStream(filename)
-        fos.write(y.compressedContent)
-        fos.close()
-        print(x.toString + "\r")
-        x + 1
-      })
+    val sink = Sink.fold(0)(storeArticle)
     val src = source(args(0))
     val counter = src.mapAsyncUnordered(numCPUs)(guessType).filter(_.articleType == ArticleType.Artist).toMat(sink)(Keep.right)
     val sum: Future[Int] = counter.run()
