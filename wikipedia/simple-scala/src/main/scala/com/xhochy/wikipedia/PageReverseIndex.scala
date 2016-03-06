@@ -16,7 +16,7 @@ object PageReverseIndex extends App {
 
   val dump = new GZIPInputStream(new FileInputStream(dumpFile))
   val parser = new MySQLDumpParser(dump)
-  
+
   println("## Parsing mysqldump'd pages table")
   val bw = LZ4Utils.openLZ4Writer(reverseIndexFile)
   parser.parseInsertInto(x => {
