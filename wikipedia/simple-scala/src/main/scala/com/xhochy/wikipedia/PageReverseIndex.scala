@@ -3,8 +3,11 @@ package com.xhochy.wikipedia
 import com.xhochy.LZ4Utils
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
+import org.apache.avro.generic.GenericData
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.StringUtils
+import org.apache.parquet.avro.AvroParquetWriter
+
 
 object PageReverseIndex extends App {
   if (args.length < 2) {
@@ -18,19 +21,18 @@ object PageReverseIndex extends App {
   val parser = new MySQLDumpParser(dump)
 
   println("## Parsing mysqldump'd pages table")
-  val bw = LZ4Utils.openLZ4Writer(reverseIndexFile)
+  val index = new WikiPageIndex()
+  val schema = index.avroSchema
+  val writer = index.getWriter(reverseIndexFile)
   parser.parseInsertInto(x => {
-      // namespaceID|title|id
-      bw._1.write(x(1))
-      bw._1.write('|')
-      bw._1.write(Base64.encodeBase64String(StringUtils.getBytesUtf8(x(2))))
-      bw._1.write('|')
-      bw._1.write(x(0))
-      bw._1.newLine()
+      val record = new GenericData.Record(schema)
+      record.put("namespace_id", x(1).toInt)
+      record.put("title", x(2))
+      record.put("id", x(0).toInt)
+      writer.write(record);
     })
 
-  // Correctly close all streams in the order they were opened
-  LZ4Utils.closeLZ4Writer(bw)
+  writer.close()
 }
 
 // vim: set ts=2 sw=2 et:
