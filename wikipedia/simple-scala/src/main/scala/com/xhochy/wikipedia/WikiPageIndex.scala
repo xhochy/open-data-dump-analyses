@@ -3,8 +3,7 @@ package com.xhochy.wikipedia
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.fs.Path
-import org.apache.parquet.avro.{AvroSchemaConverter, AvroWriteSupport}
-import org.apache.parquet.hadoop.ParquetWriter
+import org.apache.parquet.avro.{AvroParquetReader, AvroParquetWriter}
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 
 class WikiPageIndex {
@@ -18,15 +17,17 @@ class WikiPageIndex {
         {"name": "id", "type": "int"}
     ]
   }"""
-  val avroSchema = new Schema.Parser().parse(schemaDefinition)
-  val blockSize = 256 * 1024 * 1024
-  val pageSize = 64 * 1024
-  val compressionCodecName = CompressionCodecName.SNAPPY
-  val parquetSchema = new AvroSchemaConverter().convert(avroSchema);
-  val writeSupport = new AvroWriteSupport[GenericRecord](parquetSchema, avroSchema);
+  val schema = new Schema.Parser().parse(schemaDefinition)
 
   def getWriter(filename:String) = {
-    new ParquetWriter(new Path(filename), writeSupport, compressionCodecName, blockSize, pageSize);
+    AvroParquetWriter.builder[GenericRecord](new Path(filename))
+      .withSchema(schema)
+      .withCompressionCodec(CompressionCodecName.SNAPPY)
+      .build()
+  }
+
+  def getReader(filename:String) = {
+    new AvroParquetReader[GenericRecord](new Path(filename))
   }
 
 }

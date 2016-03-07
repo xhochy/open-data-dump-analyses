@@ -19,7 +19,7 @@ object PageReverseIndex extends App {
 
   println("## Parsing mysqldump'd pages table")
   val index = new WikiPageIndex()
-  val schema = index.avroSchema
+  val schema = index.schema
   val writer = index.getWriter(reverseIndexFile)
   parser.parseInsertInto(x => {
       val record = new GenericData.Record(schema)

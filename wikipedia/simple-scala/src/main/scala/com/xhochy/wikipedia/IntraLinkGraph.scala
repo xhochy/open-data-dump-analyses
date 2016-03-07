@@ -3,6 +3,7 @@ package com.xhochy.wikipedia
 import com.xhochy.LZ4Utils
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
+import org.apache.avro.generic.GenericRecord
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.StringUtils
 import scala.collection.mutable.HashMap
@@ -18,17 +19,18 @@ object IntraLinkGraph extends App {
   val graphFile = args(2)
 
   println("## Loading reverseIndex")
-  val br = LZ4Utils.openLZ4Reader(reverseIndexFile)
   val reverseIndex = new HashMap[(Int, String), Int]()
-  var line:String = br._1.readLine()
-  while (line != null) {
-    val segments = line.split('|')
-    val name = StringUtils.newStringUtf8(Base64.decodeBase64(segments(1)))
-    reverseIndex += (((segments(0).toInt, name), segments(2).toInt))
-    line = br._1.readLine()
+  val index = new WikiPageIndex()
+  val reader = index.getReader(reverseIndexFile)
+  var record:GenericRecord = reader.read()
+  while (record != null) {
+    record = reader.read()
+    val title = record.get("title").asInstanceOf[String]
+    val namespace = record.get("namespace_id").asInstanceOf[Int]
+    val id = record.get("id").asInstanceOf[Int] 
+    reverseIndex += (((namespace, title), id))
   }
-  // Close all streams NOW to save resources
-  LZ4Utils.closeLZ4Reader(br)
+  reader.close()
 
   println("## Parsing mysqldump'd pagelinks table and writing out graph")
   val dump = new GZIPInputStream(new FileInputStream(dumpFile))
