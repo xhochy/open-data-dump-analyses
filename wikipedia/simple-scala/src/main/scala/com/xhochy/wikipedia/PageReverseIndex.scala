@@ -1,11 +1,8 @@
 package com.xhochy.wikipedia
 
-import com.xhochy.LZ4Utils
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
 import org.apache.avro.generic.GenericData
-import org.apache.commons.codec.binary.Base64
-import org.apache.commons.codec.binary.StringUtils
 import org.apache.parquet.avro.AvroParquetWriter
 
 
