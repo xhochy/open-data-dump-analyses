@@ -8,7 +8,7 @@ mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
         case "META-INF/LICENSE" => MergeStrategy.concat
         case "META-INF/LICENSE.txt" => MergeStrategy.concat
         case "META-INF/LICENSES.txt" => MergeStrategy.concat
-        case x => old(x)
+        case x => MergeStrategy.first
     }
 }
 
@@ -24,17 +24,19 @@ organization := "com.xhochy"
 mainClass := Some("com.xhochy.App")
 
 libraryDependencies ++= {
-  	Seq(
-            "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.3",
-            "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
-            "commons-codec" % "commons-codec" % "1.9",
-            "org.apache.commons" % "commons-compress" % "1.9",
-            "net.jpountz.lz4" % "lz4" % "1.2.0",
-            "org.specs2" %% "specs2" % "2.3.12" % "test",
-    		"org.scalatest" %% "scalatest" % "2.1.6" % "test",
-            "org.slf4j" % "slf4j-simple" % "1.7.7",
-            "org.yaml" % "snakeyaml" % "1.13"
-  	)
+  Seq(
+    "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.3",
+    "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
+    "commons-codec" % "commons-codec" % "1.9",
+    "org.apache.commons" % "commons-compress" % "1.9",
+    "net.jpountz.lz4" % "lz4" % "1.2.0",
+    "org.specs2" %% "specs2" % "2.3.12" % "test",
+    "org.scalatest" %% "scalatest" % "2.1.6" % "test",
+    "org.apache.avro" % "avro" % "1.8.0",
+    "org.apache.parquet" % "parquet-avro" % "1.8.1",
+    "org.apache.hadoop" % "hadoop-common" % "2.7.2",
+    "org.yaml" % "snakeyaml" % "1.13"
+  )
 }
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
