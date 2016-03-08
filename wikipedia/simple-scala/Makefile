@@ -1,9 +1,10 @@
 PREFIX ?= en
-JVM_OPTS ?= -Xmx5G
-DATADIR ?= /mnt/newspace/data
-PAGES_DUMP_FILE = $(DATADIR)/$(PREFIX)wiki-latest-page.sql.gz
-PAGELINKS_DUMP_FILE= $(DATADIR)/$(PREFIX)wiki-latest-pagelinks.sql.gz
-PAGELINKS_TRIPLE = $(DATADIR)/$(PREFIX)wiki-latest-pagelinks.bz2
+JVM_OPTS ?= -Xmx7G
+DATADIR ?= /mnt/newspace/data/wikipedia
+DATE_STR = 20160204
+PAGES_DUMP_FILE = $(DATADIR)/$(PREFIX)wiki-$(DATE_STR)-page.sql.gz
+PAGELINKS_DUMP_FILE= $(DATADIR)/$(PREFIX)wiki-$(DATE_STR)-pagelinks.sql.gz
+PAGELINKS_TRIPLE = $(DATADIR)/$(PREFIX)wiki-$(DATE_STR)-pagelinks.bz2
 PAGE_REVERSE_INDEX_FILE = $(DATADIR)/$(PREFIX)-page-reverse-index.parquet
 PAGE_TRIPLE_FILE = $(DATADIR)/$(PREFIX)-page-triple.bz2
 INTRALINK_GRAPH_EDGELIST = $(DATADIR)/$(PREFIX)-intralink-graph-edgelist.lz4
