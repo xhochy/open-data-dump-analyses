@@ -58,11 +58,12 @@ int main(int argc, char** argv) {
     }
 
     // TODO Hande the min(degree) case for files with "optional int32 degree"
-    
     std::cout << "# of edges: " << stats.degree_sum << std::endl;
     std::cout << "min(degree): " << stats.min_degree << std::endl;
     std::cout << "avg(degree): " << (stats.degree_sum / static_cast<float>(reader->num_rows())) << std::endl;
     std::cout << "max(degree): " << stats.max_degree << std::endl;
+
+    reader->Close();
   } catch (const std::exception& e) {
     std::cerr << "Parquet error: "
               << e.what()
