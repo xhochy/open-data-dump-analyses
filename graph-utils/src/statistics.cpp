@@ -4,6 +4,7 @@
 #include <parquet/api/schema.h>
 
 using namespace parquet_cpp;
+#define BATCH_SIZE 8192
 
 struct graph_statistics {
   int32_t min_degree;
@@ -12,9 +13,9 @@ struct graph_statistics {
 };
 
 void readBatch(std::shared_ptr<Int32Reader> &column_reader, graph_statistics &stats) {
-  int16_t def_levels[4];
-  int16_t rep_levels[4];
-  int32_t values[4];
+  int16_t def_levels[BATCH_SIZE];
+  int16_t rep_levels[BATCH_SIZE];
+  int32_t values[BATCH_SIZE];
   int64_t values_read;
   int levels_read = column_reader->ReadBatch(4, def_levels, rep_levels, values, &values_read);
   // Even though the degrees column may be optional, it is enough to stick to values read. Only if we want to have the column in sync with other columns, we need to respect the definition levels.
