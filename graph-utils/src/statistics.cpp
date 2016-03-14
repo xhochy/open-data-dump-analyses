@@ -9,7 +9,7 @@ using namespace parquet_cpp;
 struct graph_statistics {
   int32_t min_degree;
   int32_t max_degree;
-  int degree_sum;
+  int64_t degree_sum;
 };
 
 void readBatch(std::shared_ptr<Int32Reader> &column_reader, graph_statistics &stats) {
@@ -42,7 +42,6 @@ void readRowGroup(std::shared_ptr<RowGroupReader> &group_reader, graph_statistic
 
 int main(int argc, char** argv) {
   std::string filename = argv[1];
-  // TODO: neighbours should be a simple "repeated int32" not a nested repeated{required}
 
   try {
     std::unique_ptr<ParquetFileReader> reader = ParquetFileReader::OpenFile(filename);
