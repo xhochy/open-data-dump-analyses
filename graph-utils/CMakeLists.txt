@@ -23,5 +23,10 @@ endif()
 
 find_package(Parquet REQUIRED)
 include_directories(${PARQUET_INCLUDE_DIR})
+
 add_executable(statistics src/statistics.cpp)
 target_link_libraries(statistics ${PARQUET_SHARED_LIB})
+
+# Just a scaffold for doing computations on a graph
+add_executable(loadgraph src/loadgraph.cpp)
+target_link_libraries(loadgraph ${PARQUET_SHARED_LIB})
